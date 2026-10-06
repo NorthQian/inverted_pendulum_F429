@@ -1,0 +1,27 @@
+# Keil 每用户/机器相关文件（保留 *.uvprojx 工程文件）
+*.uvoptx
+*.uvguix.*
+*.bak
+*.scvd
+*.lst
+
+# J-Link / 调试器相关
+JLinkLog.txt
+JLinkSettings.ini
+
+# 日志文件
+*.log
+
+# 对象/依赖/派生产物（防落在输出目录之外）
+*.o
+*.d
+*.crf
+*.axf
+*.map
+*.dep
+*.lnp
+*.htm
+
+# CubeMX 生成的 RTE 与调试配置
+RTE/
+MDK-ARM/DebugConfig/

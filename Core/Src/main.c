@@ -32,6 +32,7 @@
 #include "bsp_can.h"
 #include "lcd.h"
 #include "keys.h"
+#include "task.h"
 #include <stdio.h>
 #include <math.h>
 /* USER CODE END Includes */
@@ -111,10 +112,15 @@ int main(void)
   /* USER CODE BEGIN 2 */
     bsp_can_init();
     lcd_init();
-    /* 静态标签：初始化时打印一次，之后刷新只更新数值 */
+    lcd_clear(BLACK);           /* 黑底，便于白字显示 */
+    g_back_color = BLACK;       /* 字符背景色也设黑，刷新数字时能清掉旧像素 */
+    lcd_show_string(10, 10, 200, 24, 24, "Ang:", WHITE);    /* 静态标签：摆杆角度 */
+    lcd_show_string(10, 44, 200, 24, 24, "Pos:", WHITE);    /* 静态标签：电机位置 */
+
 
     HAL_ADC_Start_DMA(&hadc1, &ADC_Value, 1);
     dm_motor_init();
+    pendulum_pid_init();        // 串级PID初始化
 
     motor[Motor1].ctrl.mode = spd_mode;
     motor[Motor1].ctrl.kp_set = 5.0f;
@@ -122,14 +128,12 @@ int main(void)
 
 
     HAL_Delay(1000);
-    dm_motor_enable(&hcan1, &motor[Motor1]);
+     dm_motor_enable(&hcan1, &motor[Motor1]);
 
 
-//    HAL_Delay(1000);
+     HAL_TIM_Base_Start_IT(&htim3);      // 启动 1ms 控制中断
 
-
-
-//    HAL_TIM_Base_Start_IT(&htim3);
+//    pendulum_pid_enable(1);            // 摆杆竖直扶正后再启动平衡（或由按键触发）
 
   /* USER CODE END 2 */
 
@@ -143,13 +147,41 @@ int main(void)
 
 		Key_Progress();
 
-      
+		/* 按键3：每次触发翻转一次运行状态（启动/停止平衡） */
+		if (KEY3_Instance.key_flag)
+		{
+			KEY3_Instance.key_flag = 0;    // 读后清零
+			pendulum_pid_toggle();
+      	motor_pos_zero();
+		}
+
+		/* 按键0：将当前电机编码器位置映射为0 */
+		if (KEY0_Instance.key_flag)
+		{
+			KEY0_Instance.key_flag = 0;    // 读后清零
+			motor_pos_zero();
+		}
+
+
+        /* 红色LED指示运行状态：运行亮、停止灭 */
+        HAL_GPIO_WritePin(LED_R_GPIO_Port, LED_R_Pin, pendulum_pid_get_state() ? LED_ON : LED_OFF);
 
         /* 显示刷新：非阻塞 0.1s，仅更新数值（标签已在初始化时静态打印） */
         if (HAL_GetTick() - lcd_tick >= 100)
         {
-            char buf[16];
             lcd_tick = HAL_GetTick();
+
+            char buf[24];
+
+            /* 摆杆角度偏差（counts，有符号） */
+            sprintf(buf, "%+.1f", angle);
+            lcd_fill(76, 10, 76 + 120, 10 + 24, BLACK);   // 先清旧值，避免残留
+            lcd_show_string(76, 10, 120, 24, 24, buf, WHITE);
+
+            /* 电机位置（rad，两位小数，有符号） */
+            sprintf(buf, "%+.2f", motor_pos);
+            lcd_fill(76, 44, 76 + 120, 44 + 24, BLACK);
+            lcd_show_string(76, 44, 120, 24, 24, buf, WHITE);
 
           
         }

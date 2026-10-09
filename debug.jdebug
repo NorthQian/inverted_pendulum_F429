@@ -5,8 +5,8 @@
 **********************************************************************
 
 File          : 
-Created       : 25. Aug 2026 13:52
-Ozone Version : V3.50
+Created       : 07. Oct 2026 12:16
+Ozone Version : V3.40h
 */
 
 /*********************************************************************
@@ -22,17 +22,17 @@ void OnProjectLoad (void) {
   //
   // Dialog-generated settings
   //
-  Project.AddPathSubstitute ("D:/Project/dm-motor/J4310-X-Head-F4", "$(ProjectDir)");
-  Project.AddPathSubstitute ("d:/project/dm-motor/j4310-x-head-f4", "$(ProjectDir)");
-  Project.SetDevice ("STM32H723VG");
+  Project.AddPathSubstitute ("D:/inverted_pendulum/inverted_pendulum", "$(ProjectDir)");
+  Project.AddPathSubstitute ("d:/inverted_pendulum/inverted_pendulum", "$(ProjectDir)");
+  Project.SetDevice ("STM32F429IG");
   Project.SetHostIF ("USB", "601023983");
   Project.SetTargetIF ("SWD");
   Project.SetTIFSpeed ("4 MHz");
-  Project.AddSvdFile ("$(InstallDir)/Config/CPU/Cortex-M7F.svd");
+  Project.AddSvdFile ("$(InstallDir)/Config/CPU/Cortex-M4F.svd");
   //
   // User settings
   //
-  File.Open ("$(ProjectDir)/MDK-ARM/J4310-X-Head-F4/J4310-X-Head-F4.axf");
+  File.Open ("$(ProjectDir)/MDK-ARM/inverted_pendulum/inverted_pendulum.axf");
 }
 
 /*********************************************************************

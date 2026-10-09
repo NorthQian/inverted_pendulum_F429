@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<JScopeProject>
+    <FileVersion major="1" minor="1" />
+    <Project>
+        <Configuration>
+            <JLink>
+                <Options Connection="1" IsRTTSession="0" IsRTTWithTimeStamp="0" IsRTTPlus="0" SamplingPeriod="100" SerialNo="0" JTAG_IRPre="0" JTAG_DRPre="0" IP="" TargetDevice="STM32F429IG" Nickname="" TargetInterface="SWD" InterfaceSpeed="4000" />
+            </JLink>
+            <ElfFile Name="D:\inverted_pendulum\inverted_pendulum\MDK-ARM\inverted_pendulum\inverted_pendulum.axf" />
+            <Scope>
+                <Options TimeResolutionUs="1000000" />
+            </Scope>
+            <Trigger>
+                <Options Level="0" Symbol="ADC_Value" On="0" Auto="0" Rise="0" Fall="0" />
+            </Trigger>
+        </Configuration>
+        <Windows>
+            <Graph Show="1" />
+            <Watch Show="1" />
+        </Windows>
+        <SelectedSymbols>
+            <Symbol>
+                <Options Name="ADC_Value" Address="0x200000AC" Type="unsigned int" TypeID="8" Size="4" GraphColorRed="255" GraphColorGreen="0" GraphColorBlue="0" YMinSampled="3735" YMaxSampled="3972" YAvgSampled="3859.38" Offset="4" ShowInGraph="1" YOffset="0" IsAutoConfig="0" YResolution="1000" MaxValue="-2147483648" File="D:\inverted_pendulum\inverted_pendulum\MDK-ARM/../Core/Src\main.c" DrawStyle="0" NameWithParents="ADC_Value" />
+            </Symbol>
+        </SelectedSymbols>
+    </Project>
+</JScopeProject>

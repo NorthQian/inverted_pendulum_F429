@@ -1,0 +1,36 @@
+
+
+GraphedExpression="ADC_Value", DisplayFormat=DISPLAY_FORMAT_DEC, Color=#e56a6f, Show=0
+GraphedExpression="(angle_pid).set", Color=#35792b, Show=0
+GraphedExpression="(angle_pid).fdb", Color=#769dda, Show=0
+GraphedExpression="angle", Color=#b14f0d
+OpenDocument="stm32f4xx_hal.c", FilePath="D:/inverted_pendulum/inverted_pendulum/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c", Line=386
+OpenDocument="stm32f4xx_it.c", FilePath="D:/inverted_pendulum/inverted_pendulum/Core/Src/stm32f4xx_it.c", Line=19
+OpenDocument="startup_stm32f429xx.s", FilePath="D:/inverted_pendulum/inverted_pendulum/MDK-ARM/startup_stm32f429xx.s", Line=167
+OpenDocument="dm_motor_ctrl.c", FilePath="D:/inverted_pendulum/inverted_pendulum/BSP/DM_Motor/dm_motor_ctrl.c", Line=167
+OpenDocument="dm_motor_drv.c", FilePath="D:/inverted_pendulum/inverted_pendulum/BSP/DM_Motor/dm_motor_drv.c", Line=357
+OpenDocument="task.c", FilePath="d:/inverted_pendulum/inverted_pendulum/BSP/TASK/task.c", Line=99
+OpenDocument="main.c", FilePath="D:/inverted_pendulum/inverted_pendulum/Core/Src/main.c", Line=54
+OpenToolbar="Debug", Floating=0, x=0, y=0
+OpenWindow="Watched Data 1", DockArea=RIGHT, x=0, y=1, w=917, h=221, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Functions", DockArea=LEFT, x=0, y=1, w=300, h=639, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Code Profile", DockArea=LEFT, x=0, y=0, w=300, h=469, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, GroupByFiles=0, SortRespectsFilters=0, ParentRelativeLoad=0
+OpenWindow="Terminal", DockArea=BOTTOM, x=0, y=0, w=759, h=312, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Data Sampling", DockArea=BOTTOM, x=2, y=0, w=646, h=312, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, VisibleTab=0, UniformSampleSpacing=0
+OpenWindow="Timeline", DockArea=RIGHT, x=0, y=0, w=917, h=887, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=1, DataPaneShown=1, PowerPaneShown=0, CodePaneShown=0, PinCursor="Cursor Movable", TimePerDiv="5 s / Div", TimeStampFormat="Time", DataGraphDrawAsPoints=0, DataGraphLegendShown=1, DataGraphUniformSampleSpacing=0, DataGraphLegendPosition="666;0", DataGraphShowNamesAtCursor=0, PowerGraphDrawAsPoints=0, PowerGraphLegendShown=0, PowerGraphAvgFilterTime=Off, PowerGraphAvgFilterLen=Off, PowerGraphUniformSampleSpacing=0, PowerGraphLegendPosition="690;-69", CodeGraphLegendShown=0, CodeGraphLegendPosition="706;0"
+OpenWindow="Console", DockArea=BOTTOM, x=1, y=0, w=1153, h=312, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+SmartViewPlugin="", Page="", Toolbar="Hidden", Window="SmartView 1"
+TableHeader="Functions", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Address";"Size";"#Insts";"Source"], ColWidths=[942;104;100;100;230]
+TableHeader="Code Profile", SortCol="File / Function", SortOrder="ASCENDING", VisibleCols=["File / Function";"Source Coverage";"Inst. Coverage";"Run Count";"Fetch Count";"Load"], ColWidths=[1583;158;194;110;126;104]
+TableHeader="Data Sampling Table", SortCol="None", SortOrder="ASCENDING", VisibleCols=["Index";"Time";" ADC_Value";" (angle_pid).set";" (angle_pid).fdb";" angle"], ColWidths=[100;100;100;100;100;100]
+TableHeader="Data Sampling Setup", SortCol="Expression", SortOrder="ASCENDING", VisibleCols=["Expression";"Type";"Value";"Min";"Max";"Average";"# Changes";"Min. Change";"Max. Change"], ColWidths=[274;134;124;124;124;144;110;144;126]
+TableHeader="Power Sampling", SortCol="None", SortOrder="ASCENDING", VisibleCols=["Index";"Time";"Ch 0"], ColWidths=[100;100;100]
+TableHeader="Watched Data 1", SortCol="Expression", SortOrder="ASCENDING", VisibleCols=["Expression";"Value";"Location";"Refresh"], ColWidths=[228;221;184;258]
+TableHeader="RegisterSelectionDialog", SortCol="None", SortOrder="ASCENDING", VisibleCols=[], ColWidths=[]
+TableHeader="TargetExceptionDialog", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Value";"Address";"Description"], ColWidths=[200;100;100;1172]
+WatchedExpression="ADC_Value", RefreshRate=5, Window=Watched Data 1
+WatchedExpression="run_state", RefreshRate=5, Window=Watched Data 1
+WatchedExpression="angle_pid", RefreshRate=5, Window=Watched Data 1
+WatchedExpression="motor[0]", RefreshRate=5, Window=Watched Data 1
+WatchedExpression="pos_pid", RefreshRate=5, Window=Watched Data 1
+WatchedExpression="angle", Window=Watched Data 1

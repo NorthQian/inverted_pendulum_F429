@@ -32,9 +32,9 @@
 
 
 
-pid_type_def chassis_speed_x_pid;
-pid_type_def chassis_speed_y_pid;
-pid_type_def chassis_yaw_pid;
+// pid_type_def chassis_speed_x_pid;
+// pid_type_def chassis_speed_y_pid;
+// pid_type_def chassis_yaw_pid;
 
 /**
  * @brief          pid struct data init

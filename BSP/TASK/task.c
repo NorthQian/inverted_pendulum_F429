@@ -20,11 +20,11 @@ int16_t PENDULUM_CENTER_ANGLE = 3880;      // 摆杆竖直向上时的 ADC 原�
 
 /* ========================= 串级PID参数（需整定） ========================= */
 /* 内环·角度环（5ms）：输入单位 rad，输出 -> 电机速度 vel_set（rad/s） */
-#define ANGLE_KP 64.0f        // 起步值：每 1 rad 误差输出 10 rad/s（保守，再逐步上调）
-#define ANGLE_KI 0.0f
-#define ANGLE_KD 0.00f // 注意：模板的D项是"每采样差分"，量级随 1/5ms 放大
+#define ANGLE_KP 40.2f        // 纯KP使用67
+#define ANGLE_KI 1.227f
+#define ANGLE_KD 329.0f // 注意：模板的D项是"每采样差分"，量级随 1/5ms 放大
 #define ANGLE_MAX_OUT 200.0f
-#define ANGLE_MAX_IOUT 5.0f
+#define ANGLE_MAX_IOUT 50.0f
 
 /* 外环·位置环（50ms）：输入单位 rad，输出 -> 目标倾斜角（rad） */
 #define POS_KP 0.5f
@@ -61,7 +61,7 @@ float pendulum_angle_rad(uint16_t adc)
 void pendulum_pid_init(void)
 {
     PID_init(&angle_pid, PID_POSITION, ANGLE_KP, ANGLE_KI, ANGLE_KD,
-             ANGLE_MAX_OUT, ANGLE_MAX_IOUT, 0.5f); // 角度环D项滤波较轻，响应更快
+             ANGLE_MAX_OUT, ANGLE_MAX_IOUT, 0.9f); // 角度环D项滤波较轻，响应更快
     PID_init(&pos_pid, PID_POSITION, POS_KP, POS_KI, POS_KD,
              POS_MAX_OUT, POS_MAX_IOUT, 0.9f);
 
@@ -163,6 +163,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         else
         {
              motor[Motor1].ctrl.vel_set = 0.0f; // 停机，电机速度给定清零
+             PID_clear(&angle_pid); // 停机，角度环PID清零
             // dm_motor_disable(&hcan1, &motor[Motor1]); // 停机，电机使能清零
         }
             dm_motor_ctrl_send(&hcan1, &motor[Motor1]);

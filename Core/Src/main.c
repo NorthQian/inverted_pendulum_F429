@@ -116,6 +116,7 @@ int main(void)
     g_back_color = BLACK;       /* 字符背景色也设黑，刷新数字时能清掉旧像素 */
     lcd_show_string(10, 10, 200, 24, 24, "Ang:", WHITE);    /* 静态标签：摆杆角度 */
     lcd_show_string(10, 44, 200, 24, 24, "Pos:", WHITE);    /* 静态标签：电机位置 */
+    lcd_show_string(10, 78, 200, 24, 24, "ADC:", WHITE);    /* 静态标签：摆杆ADC原始值 */
 
 
     HAL_ADC_Start_DMA(&hadc1, &ADC_Value, 1);
@@ -182,6 +183,11 @@ int main(void)
             sprintf(buf, "%+.2f", motor_pos);
             lcd_fill(76, 44, 76 + 120, 44 + 24, BLACK);
             lcd_show_string(76, 44, 120, 24, 24, buf, WHITE);
+
+            /* 摆杆 ADC 原始值（0~4095）：标定 PENDULUM_CENTER_ANGLE 时看这一行 */
+            sprintf(buf, "%4lu", (unsigned long)(uint16_t)ADC_Value);
+            lcd_fill(76, 78, 76 + 120, 78 + 24, BLACK);
+            lcd_show_string(76, 78, 120, 24, 24, buf, WHITE);
 
           
         }

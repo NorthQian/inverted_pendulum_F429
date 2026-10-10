@@ -12,7 +12,7 @@ extern void dm_motor_disable(hcan_t* hcan, motor_t *motor);
 extern uint32_t ADC_Value;
 
 /* ========================= 传感器标定 ========================= */
-int16_t PENDULUM_CENTER_ANGLE = 3859;      // 摆杆竖直向上时的 ADC 原始值（实测）
+int16_t PENDULUM_CENTER_ANGLE = 3880;      // 摆杆竖直向上时的 ADC 原始值（实测）3859
 #define PENDULUM_ADC_MAX 4096.0f        // 12位ADC满量程（0~4095）
 #define PENDULUM_SENSOR_SPAN 6.2831853f // 360°满量程 = 2π（回绕式电位器）
 #define PENDULUM_FALL_ANGLE 1.5708f     // 倒杆判定：|角度|超过π/2（约±90°，偏过水平）即停机
@@ -20,10 +20,10 @@ int16_t PENDULUM_CENTER_ANGLE = 3859;      // 摆杆竖直向上时的 ADC 原�
 
 /* ========================= 串级PID参数（需整定） ========================= */
 /* 内环·角度环（5ms）：输入单位 rad，输出 -> 电机速度 vel_set（rad/s） */
-#define ANGLE_KP 10.0f        // 起步值：每 1 rad 误差输出 10 rad/s（保守，再逐步上调）
+#define ANGLE_KP 64.0f        // 起步值：每 1 rad 误差输出 10 rad/s（保守，再逐步上调）
 #define ANGLE_KI 0.0f
 #define ANGLE_KD 0.00f // 注意：模板的D项是"每采样差分"，量级随 1/5ms 放大
-#define ANGLE_MAX_OUT 20.0f
+#define ANGLE_MAX_OUT 200.0f
 #define ANGLE_MAX_IOUT 5.0f
 
 /* 外环·位置环（50ms）：输入单位 rad，输出 -> 目标倾斜角（rad） */
@@ -145,7 +145,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                 cnt_angle = 0;
                 angle_pid.fdb = angle;
                 angle_pid.out = PID_calc(&angle_pid);
-                motor[Motor1].ctrl.vel_set = angle_pid.out;
+                 motor[Motor1].ctrl.vel_set = angle_pid.out;
                 // motor[Motor1].ctrl.vel_set = 0.0f;   // 暂时不让电机动，避免倒杆
             }
 

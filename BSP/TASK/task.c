@@ -1,6 +1,7 @@
 #include "task.h"
 #include "pid.h"
 #include "dm_motor_drv.h"
+#include "dm_motor_ctrl.h"
 #include "can.h"
 
 extern motor_t motor[num];
@@ -20,17 +21,22 @@ int16_t PENDULUM_CENTER_ANGLE = 3880;   // 摆杆竖直向上时的 ADC 原始�
 /* ========================= 串级PID参数（需整定） ========================= */
 /* 内环·角度环（5ms）：输入单位 rad，输出 -> 电机速度 vel_set（rad/s） */
 #define ANGLE_KP 40.2f // 纯KP使用67
-#define ANGLE_KI 1.227f
-#define ANGLE_KD 329.0f // 注意：模板的D项是"每采样差分"，量级随 1/5ms 放大
+#define ANGLE_KI 1.227f// ZN法整定是1.227
+#define ANGLE_KD  400.0f // 注意：模板的D项是"每采样差分"，量级随 1/5ms 放大
 #define ANGLE_MAX_OUT 200.0f
-#define ANGLE_MAX_IOUT 50.0f
+#define ANGLE_MAX_IOUT 4.0f
 
 /* 外环·位置环（50ms）：输入单位 rad，输出 -> 目标倾斜角（rad） */
-#define POS_KP 0.005f
-#define POS_KI 0.0f
+#define POS_KP 0.010f
+#define POS_KI 0.001f
 #define POS_KD 0.00f
-#define POS_MAX_OUT 0.5f // 允许的最大倾斜角（rad，约28°）
-#define POS_MAX_IOUT 0.1f
+#define POS_MAX_OUT 3.0f // 允许的最大倾斜角（rad，约28°）
+#define POS_MAX_IOUT 2.0f
+
+/* 积分分离阈值（配合 PID_init_ilimit / PID_calc_ilimit）：
+ * |误差| 超过该值时关掉积分项，避免大误差下积分饱和。单位 rad。需按实际整定。 */
+#define ANGLE_I_BAND 0.2f   // 内环·角度环
+#define POS_I_BAND   1.0f   // 外环·位置环
 /* =============================================================== */
 
 pid_type_def angle_pid; // 内环：角度环（摆杆平衡）
@@ -40,6 +46,7 @@ float motor_pos = 0;
 float angle = 0;
 uint16_t delay_position = 0;
 uint8_t delay_position_register = 0;
+
 /**
  * @brief ADC 原始值 -> 相对竖直向上的有符号角度（rad），竖直向上 = 0
  */
@@ -61,10 +68,10 @@ float pendulum_angle_rad(uint16_t adc)
  */
 void pendulum_pid_init(void)
 {
-    PID_init(&angle_pid, PID_POSITION, ANGLE_KP, ANGLE_KI, ANGLE_KD,
-             ANGLE_MAX_OUT, ANGLE_MAX_IOUT, 0.9f); // 角度环D项滤波较轻，响应更快
-    PID_init(&pos_pid, PID_POSITION, POS_KP, POS_KI, POS_KD,
-             POS_MAX_OUT, POS_MAX_IOUT, 0.9f);
+    PID_init_ilimit(&angle_pid, PID_POSITION, ANGLE_KP, ANGLE_KI, ANGLE_KD,
+                    ANGLE_MAX_OUT, ANGLE_MAX_IOUT, 0.9f, 0.1); // 角度环D项滤波较轻，响应更快
+    PID_init_ilimit(&pos_pid, PID_POSITION, POS_KP, POS_KI, POS_KD,
+                    POS_MAX_OUT, POS_MAX_IOUT, 0.9f, 0);
 
     angle_pid.set = 0.0f; // 内环目标 = 竖直向上（0 rad）
     pos_pid.set = 0.0f;   // 外环目标 = 横杆回到零位
@@ -89,11 +96,20 @@ void pendulum_pid_toggle(void)
 }
 
 /**
- * @brief 设置外环位置目标（单位：rad，与 motor[Motor1].para.pos 一致）
+ * @brief 设置外环位置目标（单位：rad，与 motor_get_pos() 同一连续坐标系）
  */
 void pendulum_pid_set_position(float pos)
 {
     pos_pid.set = pos;
+}
+
+/**
+ * @brief 位置目标相对步进（供按键加减用）
+ * @param delta 增量（rad），正负均可
+ */
+void pendulum_pid_step_position(float delta)
+{
+    pos_pid.set += delta;
 }
 
 /**
@@ -104,22 +120,26 @@ uint8_t pendulum_pid_get_state(void)
     return run_state;
 }
 
-static float motor_pos_offset = 0.0f; // 编码器零点偏移（rad）
+static float motor_pos_offset = 0.0f; // 编码器零点偏移（rad，记录在连续坐标下）
 
 /**
- * @brief 将当前编码器位置映射为0（记录零点偏移）
+ * @brief 将当前编码器位置映射为0（在连续坐标下取零，跨圈后不再错）
  */
 void motor_pos_zero(void)
 {
-    motor_pos_offset = motor[Motor1].para.pos;
+    if (!dm_motor_pos_ready()) return;   // 首帧还没到，取零无意义
+    motor_pos_offset = dm_motor_pos_cont();
+    pos_pid.set      = 0.0f;             // 目标同时归零，避免按完立刻朝旧目标跑
 }
 
 /**
- * @brief 返回映射后的位置（原始位置 - 零点偏移）
+ * @brief 返回映射后的位置（连续坐标 - 零点偏移，rad；可多圈，不回绕）
+ * @note  位置环必须用这个连续值，回绕会在跨圈时给环一个 2π 阶跃冲击。
+ *        LCD 上的 ±3.14 显示由 main.c 在显示层单独回绕。
  */
 float motor_get_pos(void)
 {
-    return motor[Motor1].para.pos - motor_pos_offset;
+    return dm_motor_pos_cont() - motor_pos_offset;
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
@@ -167,7 +187,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             /* 外环·位置环，20ms 一次，输出作为目标倾斜角（串级） */
             if (++cnt_pos >= 8)
             {
-                if (delay_position_register == 1)
+                if (0)
+                // if (delay_position_register == 1)
                 {
 
                     cnt_pos = 0;

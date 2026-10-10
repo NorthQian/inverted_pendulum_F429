@@ -22,6 +22,11 @@ typedef union
 
 void dm_motor_init(void);
 
+/* Motor1 位置回绕展开（多圈连续坐标） */
+void    dm_motor_pos_unwrap(float raw);
+float   dm_motor_pos_cont(void);
+uint8_t dm_motor_pos_ready(void);
+
 void read_all_motor_data(motor_t *motor);
 void receive_motor_data(motor_t *motor, uint8_t *data);
 

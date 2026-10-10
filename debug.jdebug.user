@@ -1,24 +1,31 @@
 
 
 GraphedExpression="angle", Color=#e56a6f
-OpenDocument="task.c", FilePath="d:/Project/STM32Project/inverted_pendulum_F429/BSP/TASK/task.c", Line=111
-OpenDocument="main.c", FilePath="D:/Project/STM32Project/inverted_pendulum_F429/Core/Src/main.c", Line=54
+GraphedExpression="(angle_pid).Pout", Color=#35792b
+GraphedExpression="(angle_pid).Iout", Color=#769dda
+GraphedExpression="(angle_pid).Dout", Color=#b14f0d
+GraphedExpression="(angle_pid).out", Color=#b3c38e
+OpenDocument="stm32f4xx_it.c", FilePath="d:/Project/STM32Project/inverted_pendulum_F429/Core/Src/stm32f4xx_it.c", Line=0
+OpenDocument="startup_stm32f429xx.s", FilePath="d:/Project/STM32Project/inverted_pendulum_F429/MDK-ARM/startup_stm32f429xx.s", Line=168
+OpenDocument="task.c", FilePath="d:/Project/STM32Project/inverted_pendulum_F429/BSP/TASK/task.c", Line=0
+OpenDocument="main.c", FilePath="d:/Project/STM32Project/inverted_pendulum_F429/Core/Src/main.c", Line=0
 OpenToolbar="Debug", Floating=0, x=0, y=0
 OpenWindow="Memory 1", DockArea=BOTTOM, x=0, y=0, w=1062, h=312, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, EditorAddress=0x20000144
-OpenWindow="Watched Data 1", DockArea=RIGHT, x=0, y=1, w=917, h=516, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
-OpenWindow="Functions", DockArea=LEFT, x=0, y=1, w=300, h=636, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
-OpenWindow="Code Profile", DockArea=LEFT, x=0, y=0, w=300, h=472, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, GroupByFiles=0, SortRespectsFilters=0, ParentRelativeLoad=0
-OpenWindow="Data Sampling", DockArea=BOTTOM, x=2, y=0, w=649, h=312, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, VisibleTab=0, UniformSampleSpacing=0
-OpenWindow="Timeline", DockArea=RIGHT, x=0, y=0, w=917, h=592, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=1, DataPaneShown=1, PowerPaneShown=0, CodePaneShown=0, PinCursor="Cursor Movable", TimePerDiv="500 ms / Div", TimeStampFormat="Time", DataGraphDrawAsPoints=0, DataGraphLegendShown=1, DataGraphUniformSampleSpacing=0, DataGraphLegendPosition="667;0", DataGraphShowNamesAtCursor=0, PowerGraphDrawAsPoints=0, PowerGraphLegendShown=0, PowerGraphAvgFilterTime=Off, PowerGraphAvgFilterLen=Off, PowerGraphUniformSampleSpacing=0, PowerGraphLegendPosition="934;-69", CodeGraphLegendShown=0, CodeGraphLegendPosition="950;0"
+OpenWindow="Watched Data 1", DockArea=RIGHT, x=0, y=1, w=917, h=517, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Functions", DockArea=LEFT, x=0, y=1, w=300, h=633, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Code Profile", DockArea=LEFT, x=0, y=0, w=300, h=379, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, GroupByFiles=0, SortRespectsFilters=0, ParentRelativeLoad=0
+OpenWindow="Data Sampling", DockArea=BOTTOM, x=2, y=0, w=345, h=312, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, VisibleTab=0, UniformSampleSpacing=0
+OpenWindow="Timeline", DockArea=RIGHT, x=0, y=0, w=917, h=495, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=1, DataPaneShown=1, PowerPaneShown=0, CodePaneShown=0, PinCursor="Cursor Movable", TimePerDiv="1 s / Div", TimeStampFormat="Time", DataGraphDrawAsPoints=0, DataGraphLegendShown=1, DataGraphUniformSampleSpacing=0, DataGraphLegendPosition="659;0", DataGraphShowNamesAtCursor=0, PowerGraphDrawAsPoints=0, PowerGraphLegendShown=0, PowerGraphAvgFilterTime=Off, PowerGraphAvgFilterLen=Off, PowerGraphUniformSampleSpacing=0, PowerGraphLegendPosition="690;-69", CodeGraphLegendShown=0, CodeGraphLegendPosition="706;0"
 OpenWindow="Console", DockArea=BOTTOM, x=1, y=0, w=847, h=312, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
 SmartViewPlugin="", Page="", Toolbar="Hidden", Window="SmartView 1"
 TableHeader="Functions", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Address";"Size";"#Insts";"Source"], ColWidths=[942;104;100;100;230]
 TableHeader="Code Profile", SortCol="File / Function", SortOrder="ASCENDING", VisibleCols=["File / Function";"Source Coverage";"Inst. Coverage";"Run Count";"Fetch Count";"Load"], ColWidths=[1583;158;194;110;126;104]
-TableHeader="Data Sampling Table", SortCol="None", SortOrder="ASCENDING", VisibleCols=["Index";"Time";" angle"], ColWidths=[100;100;100]
-TableHeader="Data Sampling Setup", SortCol="Expression", SortOrder="ASCENDING", VisibleCols=["Expression";"Type";"Value";"Min";"Max";"Average";"# Changes";"Min. Change";"Max. Change"], ColWidths=[274;100;124;124;114;124;110;126;126]
+TableHeader="Data Sampling Table", SortCol="None", SortOrder="ASCENDING", VisibleCols=["Index";"Time";" angle";" (angle_pid).Pout";" (angle_pid).Iout";" (angle_pid).Dout";" (angle_pid).out"], ColWidths=[100;100;100;100;100;100;100]
+TableHeader="Data Sampling Setup", SortCol="Expression", SortOrder="ASCENDING", VisibleCols=["Expression";"Type";"Value";"Min";"Max";"Average";"# Changes";"Min. Change";"Max. Change"], ColWidths=[274;100;124;124;114;144;110;134;126]
 TableHeader="Power Sampling", SortCol="None", SortOrder="ASCENDING", VisibleCols=["Index";"Time";"Ch 0"], ColWidths=[100;100;100]
 TableHeader="Watched Data 1", SortCol="Expression", SortOrder="ASCENDING", VisibleCols=["Expression";"Value";"Location";"Refresh"], ColWidths=[228;221;184;284]
 TableHeader="RegisterSelectionDialog", SortCol="None", SortOrder="ASCENDING", VisibleCols=[], ColWidths=[]
 TableHeader="TargetExceptionDialog", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Value";"Address";"Description"], ColWidths=[200;100;100;340]
 WatchedExpression="ADC_Value", RefreshRate=5, Window=Watched Data 1
 WatchedExpression="angle_pid", RefreshRate=5, Window=Watched Data 1
+WatchedExpression="angle", RefreshRate=5, Window=Watched Data 1

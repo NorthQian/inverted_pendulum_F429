@@ -6,6 +6,68 @@
 motor_t motor[num];
 
 
+/* ===================== Motor1 位置回绕展开（多圈） =====================
+ * para.pos 由主机 tmp.PMAX 解码（已改为 π），名义范围 (-π, +π)，跨边界回绕。
+ * 把回绕值展开成连续（多圈）坐标：半周期 = PMAX，周期 = 2*PMAX。
+ * 半周期直接从 tmp.PMAX 派生 —— 只有一个真值来源，改 PMAX 时展开自动跟随。
+ * 若单帧位移恒小于半周期（不回绕），本函数退化为恒等直通，不破坏现状。
+ */
+#define MOTOR_POS_DELTA_MAX 1.0f   // 单帧可信位移上限（rad）：
+                                   // VMAX/反馈率 = 50/1000 = 0.05，取 1.0 留足余量
+
+static float   motor1_pos_cont   = 0.0f;   // 展开后的连续位置（rad，可多圈）
+static float   motor1_pos_prev   = 0.0f;   // 上一帧的原始回绕值（rad）
+static uint8_t motor1_pos_inited = 0;      // 首帧标志
+
+/**
+ * @brief 把一帧原始回绕位置展开到连续坐标（在 CAN 反馈回调中调用，一帧一次）
+ * @param raw 本帧 motor[Motor1].para.pos（回绕值，rad）
+ * @note  单帧位移超过半周期判为过零并补偿；补偿后仍过大判为丢帧/干扰，
+ *        只重新锚定、不累加，避免一帧坏数据把连续坐标打飞。
+ */
+void dm_motor_pos_unwrap(float raw)
+{
+	const float half   = motor[Motor1].tmp.PMAX;   // 回绕半周期
+	const float period = 2.0f * half;
+
+	if (!motor1_pos_inited)
+	{
+		motor1_pos_prev = raw;
+		motor1_pos_cont = raw;   // 首帧直接对齐，避免上电首拍跳变
+		motor1_pos_inited = 1;
+		return;
+	}
+
+	float delta = raw - motor1_pos_prev;
+
+	/* 过零补偿（正/反向各一次判断） */
+	if (delta >  half) delta -= period;
+	else if (delta < -half) delta += period;
+
+	/* 丢帧/干扰守卫：只重锚不累加 */
+	if (delta > MOTOR_POS_DELTA_MAX || delta < -MOTOR_POS_DELTA_MAX)
+	{
+		motor1_pos_prev = raw;
+		return;
+	}
+
+	motor1_pos_cont += delta;
+	motor1_pos_prev = raw;
+}
+
+/** @brief 读取 Motor1 连续坐标（rad，可能为多圈的大数） */
+float dm_motor_pos_cont(void)
+{
+	return motor1_pos_cont;
+}
+
+/** @brief 首帧是否已到（供 motor_pos_zero 判断能否取零） */
+uint8_t dm_motor_pos_ready(void)
+{
+	return motor1_pos_inited;
+}
+
+
 /**
 ************************************************************************
 * @brief:      	dm4310_motor_init: DM4310�����ʼ������
@@ -34,7 +96,7 @@ void dm_motor_init(void)
 	motor[Motor1].ctrl.pos_set 	= 10.0f;
 	motor[Motor1].ctrl.cur_set 	= 0.03f;
 	motor[Motor1].ctrl.kd_set 	= 1.0f;
-	motor[Motor1].tmp.PMAX		= 12.5f;
+	motor[Motor1].tmp.PMAX		= 3.1415926f;  // 原 12.5f；使 para.pos 范围为 (-π, +π)
 	motor[Motor1].tmp.VMAX		= 50.0f;
 	motor[Motor1].tmp.TMAX		= 10.0f;
 
@@ -210,7 +272,9 @@ void can1_rx_callback(void)
 	canx_receive(&hcan1, &rec_id, rx_data);
 	switch (rec_id)
 	{
- 		case 0x11: dm_motor_fbdata(&motor[Motor1], rx_data); break;
+ 		case 0x11: dm_motor_fbdata(&motor[Motor1], rx_data);
+ 	           dm_motor_pos_unwrap(motor[Motor1].para.pos);   // 紧跟解析之后展开
+ 	           break;
 			case 0x12: dm_motor_fbdata(&motor[Motor2], rx_data); break;
 			case 0x13: dm_motor_fbdata(&motor[Motor3], rx_data); break;
 			case 0x7FF:	/* DM register-reply frame: data[0] carries the motor address */

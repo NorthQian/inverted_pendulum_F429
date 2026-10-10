@@ -74,6 +74,18 @@ void SystemClock_Config(void);
  * TIM3 is configured by the user (see the init notes below); to start the
  * ~1 kHz control loop add:  MX_TIM3_Init();  HAL_TIM_Base_Start_IT(&htim3);  */
 
+/**
+ * @brief 显示层角度回绕：把数字限制到 (-π, π]
+ * @note  只用于 LCD 显示。位置环内部用的是连续坐标（可多圈），
+ *        在这里回绕不会给 PID 带来任何阶跃冲击。
+ */
+static float wrap_pi_display(float a)
+{
+    while (a >  3.1415926f) a -= 6.2831853f;
+    while (a < -3.1415926f) a += 6.2831853f;
+    return a;
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -115,8 +127,11 @@ int main(void)
     lcd_clear(BLACK);           /* 黑底，便于白字显示 */
     g_back_color = BLACK;       /* 字符背景色也设黑，刷新数字时能清掉旧像素 */
     lcd_show_string(10, 10, 200, 24, 24, "Ang:", WHITE);    /* 静态标签：摆杆角度 */
-    lcd_show_string(10, 44, 200, 24, 24, "Pos:", WHITE);    /* 静态标签：电机位置 */
-    lcd_show_string(10, 78, 200, 24, 24, "ADC:", WHITE);    /* 静态标签：摆杆ADC原始值 */
+    lcd_show_string(10, 44, 200, 24, 24, "Pos:", WHITE);    /* 静态标签：电机位置·连续坐标 */
+    lcd_show_string(10, 78, 200, 24, 24, "PosW:", WHITE);   /* 静态标签：电机位置·回绕 ±3.14 */
+    lcd_show_string(10, 112, 200, 24, 24, "ADC:", WHITE);   /* 静态标签：摆杆ADC原始值 */
+    lcd_show_string(10, 146, 200, 24, 24, "Tgt:", WHITE);   /* 静态标签：位置目标·连续坐标 */
+    lcd_show_string(10, 180, 200, 24, 24, "TgtW:", WHITE);  /* 静态标签：位置目标·回绕 ±3.14 */
 
 
     HAL_ADC_Start_DMA(&hadc1, &ADC_Value, 1);
@@ -148,19 +163,32 @@ int main(void)
 
 		Key_Progress();
 
-		/* 按键3：每次触发翻转一次运行状态（启动/停止平衡） */
+		/* 按键3：每次触发翻转一次运行状态（启动/停止平衡）；不重定义原点 */
 		if (KEY3_Instance.key_flag)
 		{
 			KEY3_Instance.key_flag = 0;    // 读后清零
 			pendulum_pid_toggle();
-      	motor_pos_zero();
 		}
 
-		/* 按键0：将当前电机编码器位置映射为0 */
+		/* 按键0：将当前电机编码器位置映射为0（唯一取零入口） */
 		if (KEY0_Instance.key_flag)
 		{
 			KEY0_Instance.key_flag = 0;    // 读后清零
 			motor_pos_zero();
+		}
+
+		/* 按键1：位置目标 +step */
+		if (KEY1_Instance.key_flag)
+		{
+			KEY1_Instance.key_flag = 0;    // 读后清零
+			pendulum_pid_step_position(+POS_TARGET_STEP);
+		}
+
+		/* 按键2：位置目标 -step */
+		if (KEY2_Instance.key_flag)
+		{
+			KEY2_Instance.key_flag = 0;    // 读后清零
+			pendulum_pid_step_position(-POS_TARGET_STEP);
 		}
 
 
@@ -179,15 +207,30 @@ int main(void)
             lcd_fill(76, 10, 76 + 120, 10 + 24, BLACK);   // 先清旧值，避免残留
             lcd_show_string(76, 10, 120, 24, 24, buf, WHITE);
 
-            /* 电机位置（rad，两位小数，有符号） */
+            /* 电机位置·连续坐标（可多圈，位置环实际使用的值） */
             sprintf(buf, "%+.2f", motor_pos);
             lcd_fill(76, 44, 76 + 120, 44 + 24, BLACK);
             lcd_show_string(76, 44, 120, 24, 24, buf, WHITE);
 
-            /* 摆杆 ADC 原始值（0~4095）：标定 PENDULUM_CENTER_ANGLE 时看这一行 */
-            sprintf(buf, "%4lu", (unsigned long)(uint16_t)ADC_Value);
+            /* 电机位置·回绕到 ±3.14（仅供观察，不参与控制） */
+            sprintf(buf, "%+.2f", wrap_pi_display(motor_pos));
             lcd_fill(76, 78, 76 + 120, 78 + 24, BLACK);
             lcd_show_string(76, 78, 120, 24, 24, buf, WHITE);
+
+            /* 摆杆 ADC 原始值（0~4095）：标定 PENDULUM_CENTER_ANGLE 时看这一行 */
+            sprintf(buf, "%4lu", (unsigned long)(uint16_t)ADC_Value);
+            lcd_fill(76, 112, 76 + 120, 112 + 24, BLACK);
+            lcd_show_string(76, 112, 120, 24, 24, buf, WHITE);
+
+            /* 位置目标·连续坐标：KEY1/KEY2 加减的就是这个 */
+            sprintf(buf, "%+.2f", pos_pid.set);
+            lcd_fill(76, 146, 76 + 120, 146 + 24, BLACK);
+            lcd_show_string(76, 146, 120, 24, 24, buf, WHITE);
+
+            /* 位置目标·回绕到 ±3.14（仅供观察，不参与控制） */
+            sprintf(buf, "%+.2f", wrap_pi_display(pos_pid.set));
+            lcd_fill(76, 180, 76 + 120, 180 + 24, BLACK);
+            lcd_show_string(76, 180, 120, 24, 24, buf, WHITE);
 
           
         }

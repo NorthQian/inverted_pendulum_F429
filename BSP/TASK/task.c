@@ -5,14 +5,13 @@
 
 extern motor_t motor[num];
 extern void dm_motor_ctrl_send(hcan_t *hcan, motor_t *motor);
-extern void dm_motor_disable(hcan_t* hcan, motor_t *motor);
-
+extern void dm_motor_disable(hcan_t *hcan, motor_t *motor);
 
 /* 摆杆角度传感器原始值（0~4095），由 ADC1 + DMA 后台循环采集 */
 extern uint32_t ADC_Value;
 
 /* ========================= 传感器标定 ========================= */
-int16_t PENDULUM_CENTER_ANGLE = 3880;      // 摆杆竖直向上时的 ADC 原始值（实测）3859
+int16_t PENDULUM_CENTER_ANGLE = 3880;   // 摆杆竖直向上时的 ADC 原始值（实测）3859 二次3880
 #define PENDULUM_ADC_MAX 4096.0f        // 12位ADC满量程（0~4095）
 #define PENDULUM_SENSOR_SPAN 6.2831853f // 360°满量程 = 2π（回绕式电位器）
 #define PENDULUM_FALL_ANGLE 1.5708f     // 倒杆判定：|角度|超过π/2（约±90°，偏过水平）即停机
@@ -20,14 +19,14 @@ int16_t PENDULUM_CENTER_ANGLE = 3880;      // 摆杆竖直向上时的 ADC 原�
 
 /* ========================= 串级PID参数（需整定） ========================= */
 /* 内环·角度环（5ms）：输入单位 rad，输出 -> 电机速度 vel_set（rad/s） */
-#define ANGLE_KP 40.2f        // 纯KP使用67
+#define ANGLE_KP 40.2f // 纯KP使用67
 #define ANGLE_KI 1.227f
 #define ANGLE_KD 329.0f // 注意：模板的D项是"每采样差分"，量级随 1/5ms 放大
 #define ANGLE_MAX_OUT 200.0f
 #define ANGLE_MAX_IOUT 50.0f
 
 /* 外环·位置环（50ms）：输入单位 rad，输出 -> 目标倾斜角（rad） */
-#define POS_KP 0.5f
+#define POS_KP 0.005f
 #define POS_KI 0.0f
 #define POS_KD 0.00f
 #define POS_MAX_OUT 0.5f // 允许的最大倾斜角（rad，约28°）
@@ -37,8 +36,10 @@ int16_t PENDULUM_CENTER_ANGLE = 3880;      // 摆杆竖直向上时的 ADC 原�
 pid_type_def angle_pid; // 内环：角度环（摆杆平衡）
 pid_type_def pos_pid;   // 外环：位置环（横杆定位）
 uint8_t run_state = 0;  // 0=停止, 1=运行
- float motor_pos=0;
- float angle =0;
+float motor_pos = 0;
+float angle = 0;
+uint16_t delay_position = 0;
+uint8_t delay_position_register = 0;
 /**
  * @brief ADC 原始值 -> 相对竖直向上的有符号角度（rad），竖直向上 = 0
  */
@@ -52,7 +53,7 @@ float pendulum_angle_rad(uint16_t adc)
     if (diff < -2048)
         diff += 4096;
 
-    return (float)diff * (PENDULUM_SENSOR_SPAN / PENDULUM_ADC_MAX);  // 单位 rad
+    return (float)diff * (PENDULUM_SENSOR_SPAN / PENDULUM_ADC_MAX); // 单位 rad
 }
 
 /**
@@ -103,7 +104,7 @@ uint8_t pendulum_pid_get_state(void)
     return run_state;
 }
 
-static float motor_pos_offset = 0.0f;   // 编码器零点偏移（rad）
+static float motor_pos_offset = 0.0f; // 编码器零点偏移（rad）
 
 /**
  * @brief 将当前编码器位置映射为0（记录零点偏移）
@@ -129,12 +130,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         static uint16_t cnt_pos = 0;   // 位置环 50ms 分频
 
         angle = pendulum_angle_rad((uint16_t)ADC_Value); // 有符号角度（rad）
-        motor_pos= motor_get_pos();                     // 横杆位置（rad，已映射零点）
+        motor_pos = motor_get_pos();                     // 横杆位置（rad，已映射零点）
 
         /* 倒杆自动停机：偏过水平（|diff|>1024，即 -2048~-1024 或 1024~2048）即停机 */
         if (angle > PENDULUM_FALL_ANGLE || angle < -PENDULUM_FALL_ANGLE)
         {
             run_state = 0;
+            delay_position = 0;
+            delay_position_register = 0;
+            HAL_GPIO_WritePin(LED_G_GPIO_Port, LED_G_Pin, GPIO_PIN_SET);
         }
 
         if (run_state)
@@ -145,27 +149,47 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                 cnt_angle = 0;
                 angle_pid.fdb = angle;
                 angle_pid.out = PID_calc(&angle_pid);
-                 motor[Motor1].ctrl.vel_set = angle_pid.out;
+                motor[Motor1].ctrl.vel_set = angle_pid.out;
                 // motor[Motor1].ctrl.vel_set = 0.0f;   // 暂时不让电机动，避免倒杆
             }
 
+            if (run_state == 1)
+            {
+                if (++delay_position >= 3000)
+                {
+                     delay_position = 3100;
+                    delay_position_register = 1;
+                }
+                else
+                {
+                }
+            }
             /* 外环·位置环，20ms 一次，输出作为目标倾斜角（串级） */
             if (++cnt_pos >= 8)
             {
-                // cnt_pos = 0;
-                // pos_pid.fdb = motor_pos;
-                // pos_pid.out = PID_calc(&pos_pid);
-                //  angle_pid.set = pos_pid.out+0.0f; // 添加一个小的偏置，使摆杆更容易保持直立
-                 angle_pid.set =0.0f; // 直接让摆杆保持竖直，避免位置环干扰角度环
+                if (delay_position_register == 1)
+                {
+
+                    cnt_pos = 0;
+                    pos_pid.fdb = motor_pos;
+                    pos_pid.out = PID_calc(&pos_pid);
+                    angle_pid.set = pos_pid.out + 0.0f; // 添加一个小的偏置，使摆杆更容易保持直立
+                                                        // angle_pid.set =0.0f; // 直接让摆杆保持竖直，避免位置环干扰角度环
+                    HAL_GPIO_WritePin(LED_G_GPIO_Port, LED_G_Pin, GPIO_PIN_RESET);
+                }
+                else
+                {
+                    angle_pid.set = 0.0f;
+                    HAL_GPIO_WritePin(LED_G_GPIO_Port, LED_G_Pin, GPIO_PIN_SET);
+                }
             }
-            
         }
         else
         {
-             motor[Motor1].ctrl.vel_set = 0.0f; // 停机，电机速度给定清零
-             PID_clear(&angle_pid); // 停机，角度环PID清零
+            motor[Motor1].ctrl.vel_set = 0.0f; // 停机，电机速度给定清零
+            PID_clear(&angle_pid);             // 停机，角度环PID清零
             // dm_motor_disable(&hcan1, &motor[Motor1]); // 停机，电机使能清零
         }
-            dm_motor_ctrl_send(&hcan1, &motor[Motor1]);
+        dm_motor_ctrl_send(&hcan1, &motor[Motor1]);
     }
 }

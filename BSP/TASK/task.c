@@ -12,7 +12,7 @@ extern void dm_motor_disable(hcan_t *hcan, motor_t *motor);
 extern uint32_t ADC_Value;
 
 /* ========================= 传感器标定 ========================= */
-int16_t PENDULUM_CENTER_ANGLE = 3880;   // 摆杆竖直向上时的 ADC 原始值（实测）3859 二次3880
+int16_t PENDULUM_CENTER_ANGLE = 3870;   // 摆杆竖直向上时的 ADC 原始值（实测）3859 二次3880
 #define PENDULUM_ADC_MAX 4096.0f        // 12位ADC满量程（0~4095）
 #define PENDULUM_SENSOR_SPAN 6.2831853f // 360°满量程 = 2π（回绕式电位器）
 #define PENDULUM_FALL_ANGLE 1.5708f     // 倒杆判定：|角度|超过π/2（约±90°，偏过水平）即停机

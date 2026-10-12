@@ -59,6 +59,7 @@
 
 uint32_t lcd_tick = 0;   /* last LCD refresh timestamp (ms), non-blocking 0.1s */
 uint32_t ADC_Value = 0;
+extern uint8_t delay_position_register ;
 
 /* USER CODE END PV */
 
@@ -175,6 +176,8 @@ int main(void)
 		{
 			KEY0_Instance.key_flag = 0;    // 读后清零
 			motor_pos_zero();
+      HAL_Delay(100); // 延时让位置环目标归零，避免按完立刻朝旧目标跑
+      delay_position_register = 1;
 		}
 
 		/* 按键1：位置目标 +step */

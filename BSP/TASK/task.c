@@ -20,23 +20,23 @@ int16_t PENDULUM_CENTER_ANGLE = 3870;   // 摆杆竖直向上时的 ADC 原始�
 
 /* ========================= 串级PID参数（需整定） ========================= */
 /* 内环·角度环（5ms）：输入单位 rad，输出 -> 电机速度 vel_set（rad/s） */
-#define ANGLE_KP 40.2f // 纯KP使用67
-#define ANGLE_KI 1.227f// ZN法整定是1.227
-#define ANGLE_KD  400.0f // 注意：模板的D项是"每采样差分"，量级随 1/5ms 放大
+#define ANGLE_KP 40.2f  // 纯KP使用67
+#define ANGLE_KI 1.227f // ZN法整定是1.227
+#define ANGLE_KD 400.0f // 注意：模板的D项是"每采样差分"，量级随 1/5ms 放大
 #define ANGLE_MAX_OUT 200.0f
 #define ANGLE_MAX_IOUT 4.0f
 
 /* 外环·位置环（50ms）：输入单位 rad，输出 -> 目标倾斜角（rad） */
-#define POS_KP 0.010f
-#define POS_KI 0.001f
+#define POS_KP -0.01f
+#define POS_KI 0.000f
 #define POS_KD 0.00f
 #define POS_MAX_OUT 3.0f // 允许的最大倾斜角（rad，约28°）
 #define POS_MAX_IOUT 2.0f
 
 /* 积分分离阈值（配合 PID_init_ilimit / PID_calc_ilimit）：
  * |误差| 超过该值时关掉积分项，避免大误差下积分饱和。单位 rad。需按实际整定。 */
-#define ANGLE_I_BAND 0.2f   // 内环·角度环
-#define POS_I_BAND   1.0f   // 外环·位置环
+#define ANGLE_I_BAND 0.2f // 内环·角度环
+#define POS_I_BAND 1.0f   // 外环·位置环
 /* =============================================================== */
 
 pid_type_def angle_pid; // 内环：角度环（摆杆平衡）
@@ -127,9 +127,10 @@ static float motor_pos_offset = 0.0f; // 编码器零点偏移（rad，记录在
  */
 void motor_pos_zero(void)
 {
-    if (!dm_motor_pos_ready()) return;   // 首帧还没到，取零无意义
+    if (!dm_motor_pos_ready())
+        return; // 首帧还没到，取零无意义
     motor_pos_offset = dm_motor_pos_cont();
-    pos_pid.set      = 0.0f;             // 目标同时归零，避免按完立刻朝旧目标跑
+    pos_pid.set = 0.0f; // 目标同时归零，避免按完立刻朝旧目标跑
 }
 
 /**
@@ -173,22 +174,23 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                 // motor[Motor1].ctrl.vel_set = 0.0f;   // 暂时不让电机动，避免倒杆
             }
 
-            if (run_state == 1)
-            {
-                if (++delay_position >= 3000)
-                {
-                     delay_position = 3100;
-                    delay_position_register = 1;
-                }
-                else
-                {
-                }
-            }
+            // if (run_state == 1)
+            // {
+            //     if (++delay_position >= 3000)
+            //     {
+            //         delay_position = 3100;
+            //         delay_position_register = 1;
+            //     }
+            //     else
+            //     {
+            //         // motor_pos_zero();
+            //     }
+            // }
             /* 外环·位置环，20ms 一次，输出作为目标倾斜角（串级） */
             if (++cnt_pos >= 8)
             {
-                if (0)
-                // if (delay_position_register == 1)
+                // if (0)
+                if (delay_position_register == 1)
                 {
 
                     cnt_pos = 0;

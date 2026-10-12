@@ -19,17 +19,17 @@ int16_t PENDULUM_CENTER_ANGLE = 3870;   // 摆杆竖直向上时的 ADC 原始�
 #define PENDULUM_DIR 1.0f               // 电机转向系数，摆杆反方向失衡时改为 -1.0f
 
 /* ========================= 串级PID参数（需整定） ========================= */
-/* 内环·角度环（5ms）：输入单位 rad，输出 -> 电机速度 vel_set（rad/s） */
+/* 内环·角度环：输入单位 rad，输出 -> 电机速度 vel_set（rad/s） */
 #define ANGLE_KP 40.2f  // 纯KP使用67
 #define ANGLE_KI 1.227f // ZN法整定是1.227
 #define ANGLE_KD 400.0f // 注意：模板的D项是"每采样差分"，量级随 1/5ms 放大
 #define ANGLE_MAX_OUT 200.0f
 #define ANGLE_MAX_IOUT 4.0f
 
-/* 外环·位置环（50ms）：输入单位 rad，输出 -> 目标倾斜角（rad） */
-#define POS_KP -0.01f
+/* 外环·位置环：输入单位 rad，输出 -> 目标倾斜角（rad） */
+#define POS_KP -0.05f
 #define POS_KI 0.000f
-#define POS_KD 0.00f
+#define POS_KD -0.10f
 #define POS_MAX_OUT 3.0f // 允许的最大倾斜角（rad，约28°）
 #define POS_MAX_IOUT 2.0f
 
